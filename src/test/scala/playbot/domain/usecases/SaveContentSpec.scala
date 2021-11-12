@@ -1,5 +1,6 @@
 package playbot.domain.usecases
 
+import playbot.Settings
 import playbot.UnitSpec
 import playbot.domain.entities.Site
 import playbot.domain.entities.Url
@@ -20,10 +21,12 @@ class SaveContentSpec extends UnitSpec:
     "La classe Américaine"
   )
 
+  given Settings(List[String](), true, "", "", "")
+
   given urlContentFetcher: UrlContentFetcher with
     var calledWith = ArrayBuffer[Url]()
 
-    def get(url: Url): Option[UrlContent] =
+    def get(url: Url)(using Settings): Option[UrlContent] =
       calledWith += url
       Some(
         urlContent

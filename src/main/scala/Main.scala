@@ -1,7 +1,5 @@
 import playbot.Settings
 import playbot.controllers.irc.IrcBot
-import playbot.domain.entities.Site
-import playbot.domain.entities.Url
 import playbot.domain.entities.UrlContent
 import playbot.domain.ports.ContentRepository
 import playbot.domain.ports.UrlContentFetcher
@@ -9,7 +7,7 @@ import playbot.adapters.fetchers.{given UrlContentFetcher}
 
 import java.time.Duration
 
-@main def hello: Unit =
+@main def playbot_main: Unit =
   given settings: Settings = Settings()
 
   given ContentRepository with

@@ -1,6 +1,7 @@
 package playbot.controllers
 
 import org.jibble.pircbot.PircBot
+import playbot.Settings
 import playbot.UnitSpec
 import playbot.controllers.irc.IrcBot
 import playbot.domain.entities.Site
@@ -21,8 +22,10 @@ class IrcBotSpec extends UnitSpec:
     "La classe Américaine"
   )
 
+  given Settings(List[String](), true, "", "", "")
+
   given UrlContentFetcher with
-    def get(url: Url): Option[UrlContent] =
+    def get(url: Url)(using Settings): Option[UrlContent] =
       Some(
         UrlContent(
           author = "Ophidian",
