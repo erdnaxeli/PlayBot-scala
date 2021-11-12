@@ -9,7 +9,7 @@ case class Content(
     id: Int,
     site: Site,
     title: String,
-    url: Url
+    url: String
 )
 
 case class UrlContent(
@@ -17,5 +17,6 @@ case class UrlContent(
     duration: Duration,
     externalId: String,
     site: Site,
-    title: String
+    title: String,
+    url: String
 )

@@ -4,16 +4,12 @@ import playbot.domain.entities.UrlContent
 import playbot.domain.ports.ContentRepository
 import playbot.domain.ports.UrlContentFetcher
 import playbot.adapters.fetchers.{given UrlContentFetcher}
+import playbot.adapters.contentRepositoryMysql
 
 import java.time.Duration
 
 @main def playbot_main: Unit =
   given settings: Settings = Settings()
-
-  given ContentRepository with
-    def getById(id: Int) = ???
-    def save(content: UrlContent): Unit = println(content)
-    def search(query: String) = ???
 
   val bot = IrcBot(settings.irc_name)
   bot.setVerbose(settings.irc_debug)

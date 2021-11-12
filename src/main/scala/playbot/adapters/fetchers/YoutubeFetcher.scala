@@ -38,6 +38,7 @@ class YoutubeFetcher(using settings: Settings):
           duration = Duration.parse(video.getContentDetails().getDuration()),
           externalId = url.externalId,
           site = Site.Youtube,
-          title = video.getSnippet().getTitle()
+          title = video.getSnippet().getTitle(),
+          url = s"https://www.youtube.com/watch?v=${url.externalId}"
         )
       )

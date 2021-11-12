@@ -1,10 +1,14 @@
 package playbot.domain.ports
 
+import playbot.domain.entities.Channel
 import playbot.domain.entities.Content
 import playbot.domain.entities.Url
 import playbot.domain.entities.UrlContent
+import playbot.domain.entities.User
+
+import scala.util.Try
 
 trait ContentRepository:
-  def save(content: UrlContent): Unit
+  def save(content: UrlContent, user: User, channel: Channel): Try[Content]
   def getById(id: Int): Option[Content]
   def search(query: String): Option[Content]
