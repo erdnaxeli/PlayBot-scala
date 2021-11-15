@@ -1,6 +1,6 @@
 package playbot.adapters
 
-import com.mysql.jdbc.Statement
+import playbot.Settings
 import playbot.domain.entities.Channel
 import playbot.domain.entities.Content
 import playbot.domain.entities.Url
@@ -13,15 +13,15 @@ import java.sql.DriverManager
 import java.sql.SQLException
 import javax.security.auth.login.FailedLoginException
 import scala.util.Failure
+import scala.util.Random
 import scala.util.Success
 import scala.util.Try
 
-given contentRepositoryMysql: ContentRepository with {
-  Class.forName("com.mysql.jdbc.Driver")
+class ContentRepositoryMsql(settings: Settings) extends ContentRepository:
   private val url =
-    "jdbc:mysql://localhost/assoce_nightiies"
+    s"jdbc:mariadb://${settings.db_host}/${settings.db_name}"
   private val connection =
-    DriverManager.getConnection(url, "assoce_nightiies", "")
+    DriverManager.getConnection(url, settings.db_user, settings.db_password)
   connection.setAutoCommit(false)
   private val insert_content_stmt = connection.prepareStatement(
     """
@@ -30,7 +30,8 @@ given contentRepositoryMysql: ContentRepository with {
     ON DUPLICATE KEY UPDATE
       sender = VALUE(sender),
       title = VALUE(title),
-      duration = VALUE(duration)
+      duration = VALUE(duration),
+      eatshit = rand()
     """,
     java.sql.Statement.RETURN_GENERATED_KEYS
   )
@@ -61,9 +62,8 @@ given contentRepositoryMysql: ContentRepository with {
         insert_chan_stmt.setString(3, user.name)
         insert_chan_stmt.executeUpdate
 
-        connection.commit()
         contentId
-      else throw Exception()
+      else throw Exception("No generated keys found")
     } match
       case Success(contentId) =>
         connection.commit()
@@ -79,10 +79,9 @@ given contentRepositoryMysql: ContentRepository with {
           )
         )
       case Failure(e) =>
-        connection.rollback
+        connection.rollback()
         Failure(e)
 
   def getById(id: Int): Option[Content] = ???
 
   def search(query: String): Option[Content] = ???
-}

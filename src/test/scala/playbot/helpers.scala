@@ -1,9 +1,11 @@
 package playbot
 
 import playbot.domain.entities.Content
-import playbot.domain.entities.UrlContent
-import java.time.Duration
 import playbot.domain.entities.Site
+import playbot.domain.entities.UrlContent
+import playbot.Settings
+
+import java.time.Duration
 
 def defaultContent = Content(
   author = "Ophidian",
@@ -23,3 +25,5 @@ def defaultUrlContent = UrlContent(
   title = "Love is Digital",
   url = "https://soundcloud.com/djophidian/ophidian-love-is-digital"
 )
+
+def defaultSettings = Settings(List[String](), true, "", "", "")

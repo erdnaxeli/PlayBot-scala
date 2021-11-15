@@ -1,6 +1,7 @@
 package playbot.domain.usecases
 
-import playbot.Settings
+import playbot.Executable
+import playbot.ExecutionContext
 import playbot.domain.entities.Channel
 import playbot.domain.entities.Content
 import playbot.domain.entities.Url
@@ -12,16 +13,18 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-class SaveContent(url: Url, user: User, channel: Channel)(using
-    repo: ContentRepository,
-    urlFetcher: UrlContentFetcher
-)(using Settings):
-  def perform(): Option[Content] =
-    urlFetcher.get(url) match
+trait SaveContent(url: Url, user: User, channel: Channel):
+  def perform(): Executable[Option[Content]]
+
+class SaveContentImpl(url: Url, user: User, channel: Channel)
+    extends SaveContent(url, user, channel):
+  def perform(): Executable[Option[Content]] =
+    val ctx = summon[ExecutionContext]
+    ctx.urlContentFetcher.get(url) match
       case Some(content) =>
-        repo.save(content, user, channel) match
+        ctx.contentRepository.save(content, user, channel) match
           case Success(v) => Some(v)
           case Failure(e) =>
-            println(e)
+            e.printStackTrace()
             None
       case None => None

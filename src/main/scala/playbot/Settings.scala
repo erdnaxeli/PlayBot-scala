@@ -10,6 +10,10 @@ case class Settings(
     irc_debug: Boolean,
     irc_host: String,
     irc_name: String,
+    db_name: String,
+    db_host: String,
+    db_password: String,
+    db_user: String,
     youtube_api_key: String
 )
 
@@ -23,5 +27,9 @@ object Settings:
       irc_debug = config.getBoolean("bot.debug"),
       irc_host = config.getString("bot.host"),
       irc_name = config.getString("bot.name"),
+      db_name = config.getString("db.name"),
+      db_host = config.getString("db.host"),
+      db_password = config.getString("db.password"),
+      db_user = config.getString("db.user"),
       youtube_api_key = config.getString("youtube.api_key")
     )

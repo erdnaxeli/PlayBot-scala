@@ -4,14 +4,16 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.http.HttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
+import playbot.Executable
 import playbot.Settings
+import playbot.ExecutionContext
 import playbot.domain.entities.Site
 import playbot.domain.entities.Url
 import playbot.domain.entities.UrlContent
 
 import java.time.Duration
 
-class YoutubeFetcher(using settings: Settings):
+class YoutubeFetcher:
   private val youtube = YouTube
     .Builder(
       GoogleNetHttpTransport.newTrustedTransport(),
@@ -21,11 +23,12 @@ class YoutubeFetcher(using settings: Settings):
     .setApplicationName("PlayBot")
     .build()
 
-  def get(url: Url.Youtube): Option[UrlContent] =
+  def get(url: Url.Youtube): Executable[Option[UrlContent]] =
+    val ctx = summon[ExecutionContext]
     val response = youtube
       .videos()
       .list("snippet,contentDetails")
-      .setKey(settings.youtube_api_key)
+      .setKey(ctx.settings.youtube_api_key)
       .setId(url.externalId)
       .execute()
 
