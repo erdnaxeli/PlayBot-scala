@@ -3,6 +3,7 @@ package playbot.adapters
 import playbot.Settings
 import playbot.domain.entities.Channel
 import playbot.domain.entities.Content
+import playbot.domain.entities.Tag
 import playbot.domain.entities.Url
 import playbot.domain.entities.UrlContent
 import playbot.domain.entities.User
@@ -41,6 +42,35 @@ class ContentRepositoryMsql(settings: Settings) extends ContentRepository:
     VALUES (?, ?, ?)
     """
   )
+  private val insert_tags_stmt = connection.prepareStatement(
+    """
+    INSERT INTO playbot_tags (id, tag)
+    VALUES (?, ?)
+    ON DUPLICATE KEY UPDATE
+      tag = tag
+    """
+  )
+
+  def addTags(contentId: Int, tags: List[Tag]): Try[Unit] =
+    tags match
+      case Nil => Try {}
+      case _ =>
+        insert_tags_stmt.clearBatch()
+        insert_tags_stmt.clearParameters()
+
+        tags.map(tag =>
+          insert_tags_stmt.setInt(1, contentId)
+          insert_tags_stmt.setString(2, tag.name)
+          insert_tags_stmt.addBatch()
+        )
+
+        Try {
+          insert_tags_stmt.executeBatch()
+          connection.commit()
+        }.recover(e =>
+          connection.rollback()
+          Failure(e)
+        )
 
   def save(content: UrlContent, user: User, channel: Channel): Try[Content] =
     Try {
@@ -57,30 +87,28 @@ class ContentRepositoryMsql(settings: Settings) extends ContentRepository:
       if rs.next() then
         val contentId = rs.getLong("GENERATED_KEY");
 
-        insert_chan_stmt.setLong(1, 1)
+        insert_chan_stmt.setLong(1, contentId)
         insert_chan_stmt.setString(2, channel.name)
         insert_chan_stmt.setString(3, user.name)
         insert_chan_stmt.executeUpdate
 
         contentId
       else throw Exception("No generated keys found")
-    } match
-      case Success(contentId) =>
-        connection.commit()
-        Success(
-          Content(
-            content.author,
-            content.duration,
-            externalId = content.externalId,
-            id = contentId.toInt,
-            site = content.site,
-            title = content.title,
-            url = content.url
-          )
-        )
-      case Failure(e) =>
-        connection.rollback()
-        Failure(e)
+    }.map(contentId =>
+      connection.commit()
+      Content(
+        content.author,
+        content.duration,
+        externalId = content.externalId,
+        id = contentId.toInt,
+        site = content.site,
+        title = content.title,
+        url = content.url
+      )
+    ).recoverWith(e =>
+      connection.rollback()
+      Failure(e)
+    )
 
   def getById(id: Int): Option[Content] = ???
 
