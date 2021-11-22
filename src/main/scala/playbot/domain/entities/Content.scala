@@ -9,7 +9,8 @@ case class Content(
     id: Int,
     site: Site,
     title: String,
-    url: String
+    url: String,
+    tags: List[Tag] = List[Tag]()
 )
 
 case class UrlContent(
