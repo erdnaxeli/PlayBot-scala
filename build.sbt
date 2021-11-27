@@ -21,7 +21,6 @@ val commonSettings = Seq(
     "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
   )
 )
-lazy val doobieVersion = "1.0.0-RC1"
 
 lazy val core = project
   .settings(
@@ -52,5 +51,6 @@ lazy val http = project
   .settings(
     commonSettings,
     name := "PlayBot-http",
-    version := "0.1.0-SNAPSHOT"
+    version := "0.1.0-SNAPSHOT",
+    run / fork := true
   )
