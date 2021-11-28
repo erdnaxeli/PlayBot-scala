@@ -11,6 +11,7 @@ import playbot.domain.ports.TextBot
 import playbot.domain.ports.TextMessage
 import upickle.default.read
 
+import java.time.LocalDateTime
 import scala.io.Source
 
 class RpcHandler()(using ctx: ExecutionContext) extends HttpHandler:
@@ -27,29 +28,43 @@ class RpcHandler()(using ctx: ExecutionContext) extends HttpHandler:
   }
 
   def handle(t: HttpExchange): Unit =
+    val now = LocalDateTime.now.toString
     if t.getRequestMethod == "POST" then
       try
-        val rpcMessage = read[RpcMessage](t.getRequestBody)
+        val header = t.getRequestHeaders.get("X-PLAYBOT-KEY")
 
-        textBot
-          .processMessage(
-            TextMessage(
-              Channel(rpcMessage.channel),
-              User(rpcMessage.user),
-              rpcMessage.value
+        if header != null && !header.isEmpty &&
+          header.get(0) == ctx.settings.http_key
+        then
+          val rpcMessage = read[RpcMessage](t.getRequestBody)
+          println(s"$now Received $rpcMessage")
+
+          textBot
+            .processMessage(
+              TextMessage(
+                Channel(rpcMessage.channel),
+                User(rpcMessage.user),
+                rpcMessage.value
+              )
             )
-          )
-          .map(msg => sendResponse(msg.value, t))
+            .map(msg => sendResponse(msg.value, t))
+        else
+          println(s"$now Invalid auth")
+          t.sendResponseHeaders(401, 0)
       catch
         case e: Exception =>
+          println(now)
           e.printStackTrace
           t.sendResponseHeaders(500, 0)
-    else t.sendResponseHeaders(400, 0)
+    else
+      println(s"$now Invalid method")
+      t.sendResponseHeaders(400, 0)
 
     t.getResponseBody.close
 
   private def sendResponse(msg: String, t: HttpExchange): Unit =
-    t.sendResponseHeaders(200, msg.length)
+    val bytes = msg.getBytes
+    t.sendResponseHeaders(200, bytes.length)
     val rb = t.getResponseBody
-    rb.write(msg.getBytes)
+    rb.write(bytes)
     rb.close

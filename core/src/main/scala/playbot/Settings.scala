@@ -14,6 +14,7 @@ case class Settings(
     db_host: String,
     db_password: String,
     db_user: String,
+    http_key: String,
     youtube_api_key: String
 )
 
@@ -31,5 +32,6 @@ object Settings:
       db_host = config.getString("db.host"),
       db_password = config.getString("db.password"),
       db_user = config.getString("db.user"),
+      http_key = config.getString("http.key"),
       youtube_api_key = config.getString("youtube.api_key")
     )

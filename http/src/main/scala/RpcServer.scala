@@ -7,7 +7,7 @@ import java.net.InetSocketAddress
 
 object RpcServer:
   def run(): Executable[Unit] =
-    val server = HttpServer.create(new InetSocketAddress(8000), 10)
+    val server = HttpServer.create(new InetSocketAddress(12345), 10)
     server.createContext("/rpc", new RpcHandler())
     server.setExecutor(null)
 

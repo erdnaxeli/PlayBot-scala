@@ -54,6 +54,7 @@ lazy val http = project
     version := "0.1.0-SNAPSHOT",
     run / fork := true,
     libraryDependencies ++= Seq(
-      "com.lihaoyi" %% "upickle" % "1.4.0"
+      "com.lihaoyi" %% "upickle" % "1.4.0",
+      "pircbot" % "pircbot" % "1.5.0"
     )
   )
