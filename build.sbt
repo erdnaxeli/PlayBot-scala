@@ -52,5 +52,8 @@ lazy val http = project
     commonSettings,
     name := "PlayBot-http",
     version := "0.1.0-SNAPSHOT",
-    run / fork := true
+    run / fork := true,
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %% "upickle" % "1.4.0"
+    )
   )
