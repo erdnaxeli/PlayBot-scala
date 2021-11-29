@@ -23,46 +23,18 @@ import scala.util.Try
 class ContentRepositoryMsql(settings: Settings) extends ContentRepository:
   private val url =
     s"jdbc:mariadb://${settings.db_host}/${settings.db_name}"
-  private val connection =
-    DriverManager.getConnection(url, settings.db_user, settings.db_password)
-  connection.setAutoCommit(false)
-
-  private val get_content_stmt = connection.prepareStatement(
-    """
-    SELECT type, url, external_id, sender, title, duration, tag
-    FROM playbot p
-    LEFT OUTER JOIN playbot_tags pt ON p.id = pt.id
-    WHERE p.id = ?
-    """
-  )
-  private val insert_content_stmt = connection.prepareStatement(
-    """
-    INSERT INTO playbot (type, url, external_id, sender, title, duration, playlist)
-    VALUES (?, ?, ?, ?, ?, ?, 0)
-    ON DUPLICATE KEY UPDATE
-      sender = VALUE(sender),
-      title = VALUE(title),
-      duration = VALUE(duration),
-      eatshit = rand()
-    """,
-    java.sql.Statement.RETURN_GENERATED_KEYS
-  )
-  private val insert_chan_stmt = connection.prepareStatement(
-    """
-    INSERT INTO playbot_chan (content, chan, sender_irc)
-    VALUES (?, ?, ?)
-    """
-  )
-  private val insert_tags_stmt = connection.prepareStatement(
-    """
-    INSERT INTO playbot_tags (id, tag)
-    VALUES (?, ?)
-    ON DUPLICATE KEY UPDATE
-      tag = tag
-    """
-  )
 
   def addTags(contentId: Int, tags: List[Tag]): Try[Unit] =
+    val conn = get_connection
+    val insert_tags_stmt = conn.prepareStatement(
+      """
+      INSERT INTO playbot_tags (id, tag)
+      VALUES (?, ?)
+      ON DUPLICATE KEY UPDATE
+        tag = tag
+      """
+    )
+
     tags match
       case Nil => Try {}
       case _ =>
@@ -77,13 +49,33 @@ class ContentRepositoryMsql(settings: Settings) extends ContentRepository:
 
         Try {
           insert_tags_stmt.executeBatch()
-          connection.commit()
+          conn.commit()
         }.recover(e =>
-          connection.rollback()
+          conn.rollback()
           Failure(e)
         )
 
   def save(content: UrlContent, user: User, channel: Channel): Try[Content] =
+    val conn = get_connection
+    val insert_content_stmt = conn.prepareStatement(
+      """
+      INSERT INTO playbot (type, url, external_id, sender, title, duration, playlist)
+      VALUES (?, ?, ?, ?, ?, ?, 0)
+      ON DUPLICATE KEY UPDATE
+        sender = VALUE(sender),
+        title = VALUE(title),
+        duration = VALUE(duration),
+        eatshit = rand()
+      """,
+      java.sql.Statement.RETURN_GENERATED_KEYS
+    )
+    val insert_chan_stmt = conn.prepareStatement(
+      """
+      INSERT INTO playbot_chan (content, chan, sender_irc)
+      VALUES (?, ?, ?)
+      """
+    )
+
     Try {
       insert_content_stmt.clearParameters()
       insert_content_stmt.setString(1, content.site.toString.toLowerCase)
@@ -106,7 +98,7 @@ class ContentRepositoryMsql(settings: Settings) extends ContentRepository:
         contentId
       else throw Exception("No generated keys found")
     }.map(contentId =>
-      connection.commit()
+      conn.commit()
       Content(
         content.author,
         content.duration,
@@ -117,12 +109,20 @@ class ContentRepositoryMsql(settings: Settings) extends ContentRepository:
         url = content.url
       )
     ).recoverWith(e =>
-      connection.rollback()
+      conn.rollback()
       Failure(e)
     )
 
   def getById(id: Int): Option[Content] =
-    get_content_stmt.clearParameters()
+    val conn = get_connection
+    val get_content_stmt = conn.prepareStatement(
+      """
+      SELECT type, url, external_id, sender, title, duration, tag
+      FROM playbot p
+      LEFT OUTER JOIN playbot_tags pt ON p.id = pt.id
+      WHERE p.id = ?
+      """
+    )
     get_content_stmt.setInt(1, id)
     val rs = get_content_stmt.executeQuery
 
@@ -149,3 +149,9 @@ class ContentRepositoryMsql(settings: Settings) extends ContentRepository:
     else None
 
   def search(query: String): Option[Content] = ???
+
+  private def get_connection: Connection =
+    val conn =
+      DriverManager.getConnection(url, settings.db_user, settings.db_password)
+    conn.setAutoCommit(false)
+    conn
