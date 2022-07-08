@@ -17,7 +17,6 @@ import java.time.Duration
 import javax.security.auth.login.FailedLoginException
 import scala.util.Failure
 import scala.util.Random
-import scala.util.Success
 import scala.util.Try
 
 class ContentRepositoryMsql(settings: Settings) extends ContentRepository:
