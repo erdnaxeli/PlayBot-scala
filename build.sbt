@@ -67,3 +67,11 @@ lazy val http = project
       "pircbot" % "pircbot" % "1.5.0"
     )
   )
+
+lazy val cli = project
+  .dependsOn(core)
+  .settings(
+    commonSettings,
+    name := "PlayBot-cli",
+    version := "0.1.0-SNAPSHOT"
+  )
