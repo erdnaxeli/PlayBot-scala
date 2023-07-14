@@ -15,7 +15,9 @@ case class Settings(
     db_password: String,
     db_user: String,
     http_key: String,
-    youtube_api_key: String
+    youtube_api_key: String,
+    soundcloud_client_id: String,
+    soundcloud_client_secret: String
 )
 
 object Settings:
@@ -33,5 +35,7 @@ object Settings:
       db_password = config.getString("db.password"),
       db_user = config.getString("db.user"),
       http_key = config.getString("http.key"),
-      youtube_api_key = config.getString("youtube.api_key")
+      youtube_api_key = config.getString("youtube.api_key"),
+      soundcloud_client_id = config.getString("soundcloud.client_id"),
+      soundcloud_client_secret = config.getString("soundcloud.client_secret")
     )

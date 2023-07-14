@@ -1,5 +1,11 @@
-val scala3Version = "3.1.0"
+val scala3Version = "3.1.2"
 val commonSettings = Seq(
+  assembly / assemblyMergeStrategy := {
+    case "module-info.class" => MergeStrategy.discard
+    case x =>
+      val oldStrategy = (assembly / assemblyMergeStrategy).value
+      oldStrategy(x)
+  },
   scalaVersion := scala3Version,
   scalacOptions ++= Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
@@ -28,12 +34,15 @@ lazy val core = project
     name := "PlayBot-core",
     version := "0.1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.2.10" % "test",
       "com.google.api-client" % "google-api-client" % "1.23.0",
       "com.google.apis" % "google-api-services-youtube" % "v3-rev222-1.25.0",
+      "com.softwaremill.sttp.client3" %% "core" % "3.6.2",
+      //"com.softwaremill.sttp.client3" %% "play-json" % "3.6.2", // no scala3 support yet
       "com.typesafe" % "config" % "1.4.1",
-      "pircbot" % "pircbot" % "1.5.0",
-      "org.mariadb.jdbc" % "mariadb-java-client" % "2.7.4"
+      "com.typesafe.play" %% "play-json" % "2.10.0-RC6",
+      "org.mariadb.jdbc" % "mariadb-java-client" % "2.7.4",
+      "org.scalatest" %% "scalatest" % "3.2.10" % "test",
+      "pircbot" % "pircbot" % "1.5.0"
     ),
     run / fork := true
   )
@@ -57,4 +66,12 @@ lazy val http = project
       "com.lihaoyi" %% "upickle" % "1.4.0",
       "pircbot" % "pircbot" % "1.5.0"
     )
+  )
+
+lazy val cli = project
+  .dependsOn(core)
+  .settings(
+    commonSettings,
+    name := "PlayBot-cli",
+    version := "0.1.0-SNAPSHOT"
   )
